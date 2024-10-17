@@ -1,0 +1,21 @@
+body {
+    background-color: black;
+    color: green;
+    font-family: "Source Code Pro", monospace;
+    font-size: medium;
+}
+
+input {
+    background-color: black;
+    color: green;
+    border: none;
+    outline: none;
+    cursor: text;
+    width: 50vw;
+    font-family: "Source Code Pro", monospace;
+    font-size: medium;
+}
+
+.submitbtn {
+    display: none;
+}
