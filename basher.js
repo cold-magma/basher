@@ -21,7 +21,19 @@ const months = [
     "November",
     "December",
 ];
-const specialKeys = [8, 9, 13, 16, 16, 17, 17, 18, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40, 44, 45, 46, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 144, 145, 173, 174, 175, 181, 182, 183]
+const specialKeys = [8, 9, 13, 16, 16, 17, 17, 18, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40, 44, 45, 46, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 144, 145, 173, 174, 175, 181, 182, 183];
+const supportedCommands = [
+    "clear",
+    "cat",
+    "cd",
+    "date",
+    "echo",
+    "ls",
+    "mkdir",
+    "pwd",
+    "rmdir",
+    "vi"
+]
 
 var workingDirectory = "/home/basher";
 //vim props
@@ -87,6 +99,10 @@ function parseInput(stdin) {
             processedOutputString += "<br/>";
             break;
 
+        case "help":
+            processedOutputString += help() + "<br/>";
+            break;
+
         default:
             processedOutputString +=
                 "Unrecognized command " + input[0] + "<br/>";
@@ -123,6 +139,16 @@ function date(input) {
         " " +
         Intl.DateTimeFormat().resolvedOptions().timeZone
     );
+}
+
+function help() {
+    var helpString = "Basher is still very new and i am working on supporting more linux commands <br/>"
+    helpString += "Here is a list of commands currently supported by basher <br/>"
+    for (let i = 0; i < supportedCommands.length; i++) {
+        helpString += " " + (i+1) + ". " + supportedCommands[i] + " <br/>"
+    }
+    helpString += "<br/> Thanks for coming by and be sure to give your feedback over at the github repo <br/>"
+    return helpString
 }
 
 function ls(input) {
@@ -262,8 +288,8 @@ function startVim(input) {
     viminput.disabled = true
     vimFileName = input[1].includes(".") ? input[1] : input[1] + ".txt"
 
-    var data = window.localStorage.getItem(workingDirectory+"/"+vimFileName)
-    if(data)
+    var data = window.localStorage.getItem(workingDirectory + "/" + vimFileName)
+    if (data)
         viminput.innerHTML = data
 }
 
@@ -288,7 +314,7 @@ function handleVimInput(event) {
         case 8:
             if (isInsertMode) {
                 var text = document.getElementById("viminput").innerHTML
-                document.getElementById("viminput").innerHTML = text.substring(0,text.length -1)
+                document.getElementById("viminput").innerHTML = text.substring(0, text.length - 1)
             }
         case 73:
             if (isInsertMode && !checkSpecial(which)) {
