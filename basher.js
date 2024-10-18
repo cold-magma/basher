@@ -29,9 +29,10 @@ function handleTextInput(event) {
     event.target.stdin.value = "";
 }
 
-function parseInput(input) {
-    var processedOutputString = "basher@hello_world > " + input + "<br/>";
-    switch (input.split(" ")[0]) {
+function parseInput(stdin) {
+    var processedOutputString = "basher@hello_world > " + stdin + "<br/>";
+    var input = stdin.split(" ");
+    switch (input[0]) {
         case "clear":
             processedOutputString = "";
             clear();
@@ -61,7 +62,7 @@ function parseInput(input) {
 
         default:
             processedOutputString +=
-                "Unrecognized command " + input.split(" ")[0] + "<br/>";
+                "Unrecognized command " + input[0] + "<br/>";
             break;
     }
     document.getElementById("terminal").innerHTML += processedOutputString;
@@ -95,14 +96,31 @@ function date(input) {
 }
 
 function ls(input) {
-    var files = window.localStorage.getItem(workingDirectory);
-    console.log(files);
+    var files = window.localStorage.getItem(workingDirectory)
+    var folderContents = [];
+    if (files) folderContents = JSON.parse("[" + files + "]");
+    var longListFlag = false;
+    if (
+        input.length > 1 &&
+        input[1].startsWith("-") &&
+        input[1].includes("-")
+    ) {
+        longListFlag = true;
+    }
     var filesString = "";
-    if (files) {
+    if (folderContents.length > 0) {
         filesString = "." + "<br/>" + ".." + "<br/>";
-        var list = files.split(",");
-        for (let i = 0; i < list.length; i++) {
-            filesString += list[i] + "<br/>";
+        for (let i = 0; i < folderContents.length; i++) {
+            if (longListFlag) {
+                filesString +=
+                    folderContents[i].permissions +
+                    "    " +
+                    folderContents[i].modifiedBy +
+                    "    " +
+                    folderContents[i].modifiedAt +
+                    "    ";
+            }
+            filesString += folderContents[i].name + "<br/>";
         }
     } else {
         filesString = "." + "<br/>" + ".." + "<br/>";
@@ -111,13 +129,38 @@ function ls(input) {
 }
 
 function mkdir(input) {
-    var inputs = input.split(" ");
-    for (let i = 1; i < inputs.length; i++) {
-        var list = window.localStorage.getItem(workingDirectory);
-        var files = [];
-        if (list) files.push(list);
-        files.push(inputs[i]);
-        window.localStorage.setItem(workingDirectory, files);
+    for (let i = 1; i < input.length; i++) {
+        var files = window.localStorage.getItem(workingDirectory)
+        var folderContents = [];
+        if (files) folderContents = JSON.parse("[" + files + "]");
+        const d = new Date();
+        const time = d.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: false,
+        });
+        var object = {
+            name: input[i],
+            modifiedAt:
+                d.getDate() +
+                " " +
+                months[d.getMonth()] +
+                " " +
+                d.getFullYear() +
+                " " +
+                time,
+            modifiedBy: "basher",
+            permissions: "",
+        };
+        if (input[i].includes(".")) {
+            object.permissions = "-rw-rw-r--";
+            folderContents.push(JSON.stringify(object));
+        } else {
+            object.permissions = "drwxr-xr-x";
+            folderContents.push(JSON.stringify(object));
+        }
+        window.localStorage.setItem(workingDirectory, folderContents);
     }
 
     return "";
