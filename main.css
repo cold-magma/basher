@@ -16,6 +16,45 @@ input {
     font-size: medium;
 }
 
+textarea {
+    background-color: black;
+    color: green;
+    border: none;
+    outline: none;
+    cursor: text;
+    width: 95vw;
+    height: 90vh;
+    font-family: "Source Code Pro", monospace;
+    font-size: medium;
+}
+
 .submitbtn {
     display: none;
+}
+
+.vim {
+    display: none;
+    flex-direction: column;
+    width: 95vw;
+    height: 95vh;
+}
+
+#viminput {
+    display: block;
+}
+
+#statusbar {
+    display: block;
+}
+
+.terminal {
+    overflow-y: scroll;
+    overflow-wrap: break-word;
+}
+
+.root {
+    display: flex;
+    flex-direction: column;
+    width: 95vw;
+    height: 95vh;
 }
