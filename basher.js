@@ -21,6 +21,7 @@ const months = [
     "November",
     "December",
 ];
+var workingDirectory = "/home/basher";
 
 function handleTextInput(event) {
     event.preventDefault();
@@ -40,9 +41,28 @@ function parseInput(input) {
             processedOutputString += date(input) + "<br/>";
             break;
 
+        case "ls":
+            processedOutputString += ls(input) + "<br/>";
+            break;
+
+        case "mkdir":
+            mkdir(input);
+            processedOutputString += "<br/>";
+            break;
+
+        case "cd":
+            cd(input);
+            processedOutputString += "<br/>";
+            break;
+
+        case "pwd":
+            processedOutputString += pwd(input) + "<br/>";
+            break;
+
         default:
             processedOutputString +=
                 "Unrecognized command " + input.split(" ")[0] + "<br/>";
+            break;
     }
     document.getElementById("terminal").innerHTML += processedOutputString;
 }
@@ -72,4 +92,45 @@ function date(input) {
         " " +
         Intl.DateTimeFormat().resolvedOptions().timeZone
     );
+}
+
+function ls(input) {
+    var files = window.localStorage.getItem(workingDirectory);
+    console.log(files);
+    var filesString = "";
+    if (files) {
+        filesString = "." + "<br/>" + ".." + "<br/>";
+        var list = files.split(",");
+        for (let i = 0; i < list.length; i++) {
+            filesString += list[i] + "<br/>";
+        }
+    } else {
+        filesString = "." + "<br/>" + ".." + "<br/>";
+    }
+    return filesString;
+}
+
+function mkdir(input) {
+    var inputs = input.split(" ");
+    for (let i = 1; i < inputs.length; i++) {
+        var list = window.localStorage.getItem(workingDirectory);
+        var files = [];
+        if (list) files.push(list);
+        files.push(inputs[i]);
+        window.localStorage.setItem(workingDirectory, files);
+    }
+
+    return "";
+}
+
+function cd(input) {
+    if (input.startsWith("/")) {
+        workingDirectory = input;
+    } else {
+        workingDirectory += "/" + input.split(" ")[1];
+    }
+}
+
+function pwd(input) {
+    return workingDirectory;
 }
