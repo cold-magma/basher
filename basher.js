@@ -368,6 +368,10 @@ function checkSpecial(which) {
     return specialKeys.includes(which)
 }
 
-function focusinput() {
+function focusterminal() {
     document.getElementById("terminal_input").focus()
+}
+
+function focusvim() {
+    document.getElementById("viminput").focus()
 }
