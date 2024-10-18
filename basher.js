@@ -21,6 +21,8 @@ const months = [
     "November",
     "December",
 ];
+const specialKeys = [8, 9, 13, 16, 16, 17, 17, 18, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40, 44, 45, 46, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 144, 145, 173, 174, 175, 181, 182, 183]
+
 var workingDirectory = "/home/basher";
 //vim props
 var isInsertMode = false;
@@ -96,8 +98,8 @@ function clear() {
     document.getElementById("terminal").innerHTML = "";
 }
 
-function cat(input){
-    return window.localStorage.getItem(workingDirectory+"/"+input[1])
+function cat(input) {
+    return window.localStorage.getItem(workingDirectory + "/" + input[1])
 }
 
 function date(input) {
@@ -254,12 +256,15 @@ function startVim(input) {
     var root = document.getElementById("root")
     var vim = document.getElementById("vim")
     var viminput = document.getElementById("viminput")
-    var statusbar = document.getElementById("statusbar")
 
     root.style.display = "none"
     vim.style.display = "flex"
     viminput.disabled = true
     vimFileName = input[1].includes(".") ? input[1] : input[1] + ".txt"
+
+    var data = window.localStorage.getItem(workingDirectory+"/"+vimFileName)
+    if(data)
+        viminput.innerHTML = data
 }
 
 function handleVimKeyDown(event) {
@@ -280,9 +285,14 @@ function handleVimKeyDown(event) {
 function handleVimInput(event) {
     var which = event.which
     switch (which) {
+        case 8:
+            if (isInsertMode) {
+                var text = document.getElementById("viminput").innerHTML
+                document.getElementById("viminput").innerHTML = text.substring(0,text.length -1)
+            }
         case 73:
-            if (isInsertMode && which != 16) {
-                document.getElementById("viminput").innerHTML = String.fromCharCode(which) + document.getElementById("viminput").innerHTML
+            if (isInsertMode && !checkSpecial(which)) {
+                document.getElementById("viminput").innerHTML += String.fromCharCode(event.key)
             }
             else {
                 document.getElementById("viminput").disabled = false
@@ -290,14 +300,19 @@ function handleVimInput(event) {
                 isInsertMode = true
             }
             break;
+        case 186:
         case 59:
             if (!isInsertMode && event.shiftKey) {
                 vimStatus = ":"
             }
             break;
         default:
-            if (isInsertMode && which != 16) document.getElementById("viminput").innerHTML = String.fromCharCode(which) + document.getElementById("viminput").innerHTML
-            else if (vimStatus != "") vimStatus += String.fromCharCode(which).toLocaleLowerCase()
+            if (isInsertMode && !checkSpecial(which)) {
+                document.getElementById("viminput").innerHTML += event.key
+            }
+            else if (vimStatus != "" && !checkSpecial(which)) {
+                vimStatus += event.key
+            }
             break;
     }
 }
@@ -309,40 +324,50 @@ function disableInsertMode() {
 }
 
 function closeVim() {
-    var root = document.getElementById("root")
-    var vim = document.getElementById("vim")
-    var viminput = document.getElementById("viminput")
+    if (vimStatus.startsWith(":") && (vimStatus.includes("wq") || vimStatus.includes("q"))) {
+        var root = document.getElementById("root")
+        var vim = document.getElementById("vim")
+        var viminput = document.getElementById("viminput")
 
-    root.style.display = "flex"
-    vim.style.display = "none"
-    var data = viminput.innerHTML
-    viminput.innerHTML = ""
+        root.style.display = "flex"
+        vim.style.display = "none"
+        var data = viminput.innerHTML
 
+        var files = window.localStorage.getItem(workingDirectory)
+        var folderContents = [];
+        if (files) folderContents = JSON.parse("[" + files + "]");
+        const d = new Date();
+        const time = d.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: false,
+        });
+        var object = {
+            name: vimFileName,
+            modifiedAt:
+                d.getDate() +
+                " " +
+                months[d.getMonth()] +
+                " " +
+                d.getFullYear() +
+                " " +
+                time,
+            modifiedBy: "basher",
+            permissions: "-rw-rw-r--",
+        };
+        folderContents.push(JSON.stringify(object))
+        window.localStorage.setItem(workingDirectory, folderContents)
+        window.localStorage.setItem(workingDirectory + "/" + vimFileName, data)
 
-    var files = window.localStorage.getItem(workingDirectory)
-    var folderContents = [];
-    if (files) folderContents = JSON.parse("[" + files + "]");
-    const d = new Date();
-    const time = d.toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-        hour12: false,
-    });
-    var object = {
-        name: vimFileName,
-        modifiedAt:
-            d.getDate() +
-            " " +
-            months[d.getMonth()] +
-            " " +
-            d.getFullYear() +
-            " " +
-            time,
-        modifiedBy: "basher",
-        permissions: "-rw-rw-r--",
-    };
-    folderContents.push(JSON.stringify(object))
-    window.localStorage.setItem(workingDirectory, folderContents)
-    window.localStorage.setItem(workingDirectory + "/" + vimFileName, data)
+        viminput.innerHTML = ""
+    }
+}
+
+function checkSpecial(which) {
+    return specialKeys.includes(which)
+}
+
+function focusinput() {
+    document.getElementById("terminal_input").focus()
 }

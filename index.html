@@ -16,7 +16,7 @@
 </head>
 
 <body>
-    <div id="root" class="root">
+    <div id="root" class="root" onclick="focusinput()">
         <div class="terminal" id="terminal">
             Welcome to basher<br />
             @._<br />
@@ -27,14 +27,14 @@
             <br />
             Go ahead and let me know what you think. <br /><br />
         </div>
-        <form onsubmit="handleTextInput(event)">
+        <form onsubmit="handleTextInput(event)" autocomplete="off">
             basher@hello_world >
-            <input type="text" name="stdin" autofocus />
+            <input id="terminal_input" type="text" name="stdin" autofocus />
             <input class="submitbtn" id="submitbtn" type="submit" />
         </form>
     </div>
     <div class="vim" id="vim" tabindex="0" onkeydown="handleVimKeyDown(event)">
-        <textarea id="viminput" name="viminput"></textarea>
+        <textarea autocomplete="off" id="viminput" name="viminput"></textarea>
         <span id="statusbar" class="statusbar"></span>
     </div>
 
