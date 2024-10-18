@@ -167,10 +167,10 @@ function mkdir(input) {
 }
 
 function cd(input) {
-    if (input.startsWith("/")) {
+    if (input[1].startsWith("/")) {
         workingDirectory = input;
     } else {
-        workingDirectory += "/" + input.split(" ")[1];
+        workingDirectory += "/" + input[1];
     }
 }
 
