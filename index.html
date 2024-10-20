@@ -1,43 +1,55 @@
 <!DOCTYPE html>
 <html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>Basher</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/x-icon" href="assets/basher.jpg" />
+        <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
+            rel="stylesheet"
+        />
+        <script src="basher.js"></script>
+    </head>
 
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Basher</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="assets/basher.jpg" />
-    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap"
-        rel="stylesheet" />
-    <script src="basher.js"></script>
-</head>
-
-<body>
-    <div id="root" class="root" onclick="focusterminal()">
-        <div class="terminal" id="terminal">
-            Welcome to basher<br />
-            . _ @<br />
-            This is simple terminal emulator that runs purely on JavaScript and runs completely on your device.
-            <br />
-            Curious about the project? checkout it here
-            <a href="https://github.com/cold-magma/basher">github.com/cold-magma/basher</a>
-            <br />
-            Go ahead and let me know what you think. <br /><br />
+    <body>
+        <div id="root" class="root" onclick="focusterminal()">
+            <div class="terminal" id="terminal">
+                Welcome to basher<br />
+                . _ @<br />
+                This is simple terminal emulator that runs purely on JavaScript
+                and runs completely on your device.
+                <br />
+                Curious about the project? checkout it here
+                <a href="https://github.com/cold-magma/basher"
+                    >github.com/cold-magma/basher</a
+                >
+                <br />
+                Go ahead and let me know what you think. <br /><br />
+            </div>
+            <form onsubmit="handleTextInput(event)" autocomplete="off">
+                basher@hello_world >
+                <input id="terminal_input" type="text" name="stdin" autofocus />
+                <input class="submitbtn" id="submitbtn" type="submit" />
+            </form>
         </div>
-        <form onsubmit="handleTextInput(event)" autocomplete="off">
-            basher@hello_world >
-            <input id="terminal_input" type="text" name="stdin" autofocus />
-            <input class="submitbtn" id="submitbtn" type="submit" />
-        </form>
-    </div>
-    <div class="vim" id="vim" tabindex="0" onkeydown="handleVimKeyDown(event)" onclick="focusvim()">
-        <textarea autocomplete="off" id="viminput" name="viminput"></textarea>
-        <span id="statusbar" class="statusbar"></span>
-    </div>
-
-</body>
-
+        <div
+            class="vim"
+            id="vim"
+            tabindex="0"
+            onkeydown="handleVimKeyDown(event)"
+            onclick="focusvim()"
+        >
+            <textarea
+                autocomplete="off"
+                id="viminput"
+                name="viminput"
+            ></textarea>
+            <span id="statusbar" class="statusbar"></span>
+        </div>
+    </body>
 </html>
