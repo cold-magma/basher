@@ -94,14 +94,13 @@ function evaluateExpression(expression, command) {
     }
 
     if (openPipe && rightEvalString && leftEvalString) {
-        var leftOutput = parseInput(leftEvalString);
+        var leftOutput = parseInput(leftEvalString).replaceAll(" ",";");
         result += parseInput(rightEvalString + " " + leftOutput);
     } else if (!openPipe && rightEvalString) {
         result += parseInput(rightEvalString);
     } else {
         result += "Incorrect Expression" + "<br/>";
     }
-    console.log(result);
     if (result) {
         processedOutputString += result;
         document.getElementById("terminal").innerHTML += processedOutputString;
@@ -235,21 +234,19 @@ function help() {
 
 function grep(input) {
     var searchString = input[1].trim();
-    var lines = input[2].split("<br/>");
+    var lines = input[2].replaceAll(";"," ").split("<br/>");
     var outString = "";
     for (let i = 0; i < lines.length; i++) {
-        console.log(lines[i], outString);
+        
         if (lines[i].includes(searchString)) {
             outString += lines[i] + "<br/>";
         }
     }
-    console.log(outString);
     return outString;
 }
 
 function ls(input) {
     var files = getItemFromLocalStorage(workingDirectory);
-    console.log(files);
     var folderContents = [];
     if (files) folderContents = JSON.parse(files);
     var longListFlag = false;
