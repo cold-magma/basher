@@ -193,7 +193,8 @@ function clear() {
 }
 
 function cat(input) {
-    return getItemFromLocalStorage(workingDirectory + "/" + input[1]);
+    var output = getItemFromLocalStorage(workingDirectory + "/" + input[1]);
+    return output ? output : ""
 }
 
 function date(input) {
@@ -407,9 +408,9 @@ function touch(input) {
         folderContents.push(object);
         setItemInLocalStorage(
             input[1].substring(0, input[1].lastIndexOf("/")),
-            folderContents
+            JSON.stringify(folderContents)
         );
-        setItemInLocalStorage(input[1], JSON.stringify(folderContents));
+        setItemInLocalStorage(input[1], "");
     } else {
         var files = getItemFromLocalStorage(workingDirectory);
         var folderContents = [];
@@ -438,7 +439,7 @@ function touch(input) {
         setItemInLocalStorage(workingDirectory, JSON.stringify(folderContents));
         setItemInLocalStorage(
             workingDirectory + "/" + input[1],
-            folderContents
+            ""
         );
     }
 }
