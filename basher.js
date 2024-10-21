@@ -33,6 +33,7 @@ const supportedCommands = [
     "cd",
     "date",
     "echo",
+    "grep",
     "ls",
     "mkdir",
     "pwd",
@@ -94,7 +95,7 @@ function evaluateExpression(expression, command) {
     }
 
     if (openPipe && rightEvalString && leftEvalString) {
-        var leftOutput = parseInput(leftEvalString).replaceAll(" ",";");
+        var leftOutput = parseInput(leftEvalString).replaceAll(" ", ";");
         result += parseInput(rightEvalString + " " + leftOutput);
     } else if (!openPipe && rightEvalString) {
         result += parseInput(rightEvalString);
@@ -194,7 +195,7 @@ function clear() {
 
 function cat(input) {
     var output = getItemFromLocalStorage(workingDirectory + "/" + input[1]);
-    return output ? output : ""
+    return output ? output : "";
 }
 
 function date(input) {
@@ -235,10 +236,9 @@ function help() {
 
 function grep(input) {
     var searchString = input[1].trim();
-    var lines = input[2].replaceAll(";"," ").split("<br/>");
+    var lines = input[2].replaceAll(";", " ").split("<br/>");
     var outString = "";
     for (let i = 0; i < lines.length; i++) {
-        
         if (lines[i].includes(searchString)) {
             outString += lines[i] + "<br/>";
         }
@@ -437,10 +437,7 @@ function touch(input) {
         };
         folderContents.push(object);
         setItemInLocalStorage(workingDirectory, JSON.stringify(folderContents));
-        setItemInLocalStorage(
-            workingDirectory + "/" + input[1],
-            ""
-        );
+        setItemInLocalStorage(workingDirectory + "/" + input[1], "");
     }
 }
 
@@ -524,11 +521,12 @@ function closeVim() {
         var root = document.getElementById("root");
         var vim = document.getElementById("vim");
         var viminput = document.getElementById("viminput");
+        var vimstatus = document.getElementById("statusbar");
 
         root.style.display = "flex";
         vim.style.display = "none";
-        var data = viminput.innerHTML;
-
+        var data = viminput.value.replaceAll("\n", "<br/>");
+        console.log(data);
         var files = getItemFromLocalStorage(workingDirectory);
         var folderContents = [];
         if (files) folderContents = JSON.parse(files);
@@ -556,7 +554,9 @@ function closeVim() {
         setItemInLocalStorage(workingDirectory, JSON.stringify(folderContents));
         setItemInLocalStorage(workingDirectory + "/" + vimFileName, data);
 
-        viminput.innerHTML = "";
+        viminput.value = "";
+        vimstatus.innerHTML = "";
+        vimStatus = "";
     }
 }
 

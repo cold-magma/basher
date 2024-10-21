@@ -45,6 +45,9 @@ textarea {
 
 #statusbar {
     display: block;
+    width: 95vw;
+    height: 20px;
+    background-color: #121212;
 }
 
 .terminal {
