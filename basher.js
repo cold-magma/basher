@@ -46,27 +46,28 @@ function handleTextInput(event) {
 }
 
 function parseExpression(stdin) {
+    var processedOutputString = "basher@hello_world > " + stdin + "<br/>";
     var expression = [];
     for (let i = 0; i < stdin.length; i++) {
         expression.push(stdin[i]);
     }
-    evaluateExpression(expression, stdin);
-}
-
-function evaluateExpression(expression, command) {
-    var processedOutputString = "basher@hello_world > " + command + "<br/>";
-    var result = "";
-    var leftEvalString = "";
-    var rightEvalString = "";
-
-    var openPipe = false;
-
     if (expression.length == 0) {
         document.getElementById("terminal").innerHTML += processedOutputString;
         return;
     }
+    processedOutputString += evaluateExpression(expression, stdin);
+    document.getElementById("terminal").innerHTML += processedOutputString + "<br/>";
+}
 
-    while (expression.length > 0) {
+function evaluateExpression(expression) {
+    var result = "";
+    var leftEvalString = "";
+    var rightEvalString = "";
+
+    var openRedirect = false;
+    var openPipe = false;
+
+    while (!openPipe && !openRedirect && expression.length > 0) {
         var character = expression.pop();
         switch (character) {
             case ";":
@@ -74,31 +75,31 @@ function evaluateExpression(expression, command) {
                 leftEvalString = "";
                 break;
 
+            case ">":
+                openRedirect = true;
+                break;
+
             case "|":
                 openPipe = true;
                 break;
 
             default:
-                if (openPipe) leftEvalString = character + leftEvalString;
+                if (openPipe || openRedirect) leftEvalString = character + leftEvalString;
                 else rightEvalString = character + rightEvalString;
                 break;
         }
     }
 
-    if (openPipe && rightEvalString && leftEvalString) {
-        var leftOutput = parseInput(leftEvalString).replaceAll(" ", ";");
-        result += parseInput(rightEvalString + " " + leftOutput);
-    } else if (!openPipe && rightEvalString) {
-        result += parseInput(rightEvalString);
-    } else {
-        result += "Incorrect Expression" + "<br/>";
+    if (!openPipe && !openRedirect && !leftEvalString) {
+        result = parseInput(rightEvalString.trim());
     }
-    if (result) {
-        processedOutputString += result;
-        document.getElementById("terminal").innerHTML += processedOutputString;
-    } else {
-        document.getElementById("terminal").innerHTML += "<br/>";
+    if (openPipe && !openRedirect) {
+        result = parseInput(rightEvalString.trim() + " " + evaluateExpression(expression));
     }
+    if (!openPipe && openRedirect) {
+        createFileAndWriteContents(evaluateExpression(expression), rightEvalString.trim());
+    }
+    return result;
 }
 
 function parseInput(stdin) {
@@ -109,17 +110,17 @@ function parseInput(stdin) {
             break;
 
         case "basher":
-            processedOutputString += "<br/>";
+            processedOutputString;
             processBasherTools(input);
             break;
 
         case "cat":
-            processedOutputString += cat(input) + "<br/>";
+            processedOutputString += cat(input);
             break;
 
         case "cd":
             cd(input);
-            processedOutputString += "<br/>";
+            processedOutputString;
             break;
 
         case "clear":
@@ -127,47 +128,47 @@ function parseInput(stdin) {
             break;
 
         case "date":
-            processedOutputString += date(input) + "<br/>";
+            processedOutputString += date(input);
             break;
 
         case "echo":
-            processedOutputString += echo(input) + "<br/>";
+            processedOutputString += echo(input);
             break;
 
         case "grep":
-            processedOutputString += grep(input) + "<br/>";
+            processedOutputString += grep(input);
             break;
 
         case "help":
-            processedOutputString += help() + "<br/>";
+            processedOutputString += help();
             break;
 
         case "ls":
-            processedOutputString += ls(input) + "<br/>";
+            processedOutputString += ls(input);
             break;
 
         case "mkdir":
             mkdir(input);
-            processedOutputString += "<br/>";
+            processedOutputString;
             break;
 
         case "pwd":
-            processedOutputString += pwd(input) + "<br/>";
+            processedOutputString += pwd(input);
             break;
 
         case "rmdir":
             rmdir(input);
-            processedOutputString += "<br/>";
+            processedOutputString;
             break;
 
         case "touch":
-            touch(input);
-            processedOutputString += "<br/>";
+            touch(input[1]);
+            processedOutputString;
             break;
 
         case "vi":
             startVim(input);
-            processedOutputString += "<br/>";
+            processedOutputString;
             break;
 
         default:
@@ -224,7 +225,7 @@ function help() {
 
 function grep(input) {
     var searchString = input[1].trim();
-    var lines = input[2].replaceAll(";", " ").split("<br/>");
+    var lines = input.slice(2).join(" ").split("<br/>");
     var outString = "";
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes(searchString)) {
@@ -289,11 +290,7 @@ function mkdir(input) {
 }
 
 function echo(input) {
-    var outputString = "";
-    for (let i = 1; i < input.length; i++) {
-        outputString += input[i] + " ";
-    }
-    outputString = outputString.replaceAll('"', "");
+    var outputString = input.slice(1).join(" ").replaceAll('"', "");
     return outputString;
 }
 
@@ -343,13 +340,14 @@ function pwd(input) {
     return workingDirectory;
 }
 
-function touch(input) {
-    if (input[1].startsWith("/")) {
-        let fileName = input[1].substring(0, input[1].lastIndexOf("/"));
+function touch(filePath) {
+    if (filePath.startsWith("/")) {
+        let fileName = filePath.substring(0, filePath.lastIndexOf("/"));
         var files = getItemFromLocalStorage(fileName);
         var folderContents = [];
         if (files) folderContents = JSON.parse(files);
         var object = initFileObject(fileName);
+        object.permissions = "-rw-rw-r--";
         for (let j = 0; j < folderContents.length; j++) {
             if (folderContents[j].name == object.name) {
                 return;
@@ -357,12 +355,13 @@ function touch(input) {
         }
         folderContents.push(object);
         setItemInLocalStorage(fileName, JSON.stringify(folderContents));
-        setItemInLocalStorage(input[1], "");
+        setItemInLocalStorage(filePath, "");
     } else {
         var files = getItemFromLocalStorage(workingDirectory);
         var folderContents = [];
         if (files) folderContents = JSON.parse(files);
-        var object = initFileObject(input[1]);
+        var object = initFileObject(filePath);
+        object.permissions = "-rw-rw-r--";
         for (let j = 0; j < folderContents.length; j++) {
             if (folderContents[j].name == object.name) {
                 return;
@@ -370,7 +369,7 @@ function touch(input) {
         }
         folderContents.push(object);
         setItemInLocalStorage(workingDirectory, JSON.stringify(folderContents));
-        setItemInLocalStorage(workingDirectory + "/" + input[1], "");
+        setItemInLocalStorage(workingDirectory + "/" + filePath, "");
     }
 }
 
@@ -452,7 +451,7 @@ function closeVim() {
         root.style.display = "flex";
         vim.style.display = "none";
         var data = viminput.value.replaceAll("\n", "<br/>");
-        
+
         var files = getItemFromLocalStorage(workingDirectory);
         var folderContents = [];
         if (files) folderContents = JSON.parse(files);
@@ -509,4 +508,13 @@ function initFileObject(name) {
         permissions: "",
     };
     return object;
+}
+
+function createFileAndWriteContents(result, filePath) {
+    touch(filePath);
+    if (filePath.startsWith("/")) {
+        setItemInLocalStorage(filePath, result);
+    } else {
+        setItemInLocalStorage(workingDirectory + "/" + filePath, result);
+    }
 }
