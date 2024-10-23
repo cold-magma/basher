@@ -56,7 +56,9 @@ function parseExpression(stdin) {
         return;
     }
     processedOutputString += evaluateExpression(expression, stdin);
-    document.getElementById("terminal").innerHTML += processedOutputString + "<br/>";
+    if (!(document.getElementById("terminal").innerHTML == "")) {
+        document.getElementById("terminal").innerHTML += processedOutputString + "<br/>";
+    }
 }
 
 function evaluateExpression(expression) {
