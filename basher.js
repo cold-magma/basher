@@ -55,10 +55,11 @@ function parseExpression(stdin) {
         document.getElementById("terminal").innerHTML += processedOutputString;
         return;
     }
+    console.log(stdin)
     processedOutputString += evaluateExpression(expression, stdin);
-    if (!(document.getElementById("terminal").innerHTML == "")) {
+    if (!(stdin == "clear")) {
         document.getElementById("terminal").innerHTML += processedOutputString + "<br/>";
-    }
+    } 
 }
 
 function evaluateExpression(expression) {
