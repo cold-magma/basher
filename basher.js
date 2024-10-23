@@ -1,12 +1,4 @@
-const days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-];
+const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const months = [
     "January",
     "February",
@@ -22,9 +14,8 @@ const months = [
     "December",
 ];
 const specialKeys = [
-    8, 9, 13, 16, 16, 17, 17, 18, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39,
-    40, 44, 45, 46, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123,
-    144, 145, 173, 174, 175, 181, 182, 183,
+    8, 9, 13, 16, 16, 17, 17, 18, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40, 44, 45, 46, 112, 113, 114, 115, 116,
+    117, 118, 119, 120, 121, 122, 123, 144, 145, 173, 174, 175, 181, 182, 183,
 ];
 const supportedCommands = [
     "basher reset",
@@ -55,32 +46,39 @@ function handleTextInput(event) {
 }
 
 function parseExpression(stdin) {
+    var processedOutputString = "basher@hello_world > " + stdin + "<br/>";
     var expression = [];
     for (let i = 0; i < stdin.length; i++) {
         expression.push(stdin[i]);
     }
-    evaluateExpression(expression, stdin);
-}
-
-function evaluateExpression(expression, command) {
-    var processedOutputString = "basher@hello_world > " + command + "<br/>";
-    var result = "";
-    var leftEvalString = "";
-    var rightEvalString = "";
-
-    var openPipe = false;
-
     if (expression.length == 0) {
         document.getElementById("terminal").innerHTML += processedOutputString;
         return;
     }
+    console.log(stdin)
+    processedOutputString += evaluateExpression(expression, stdin);
+    if (!(stdin == "clear")) {
+        document.getElementById("terminal").innerHTML += processedOutputString + "<br/>";
+    } 
+}
 
-    while (expression.length > 0) {
+function evaluateExpression(expression) {
+    var result = "";
+    var leftEvalString = "";
+    var rightEvalString = "";
+
+    var openRedirect = false;
+    var openPipe = false;
+
+    while (!openPipe && !openRedirect && expression.length > 0) {
         var character = expression.pop();
         switch (character) {
             case ";":
-                result += parseInput(leftEvalString);
-                leftEvalString = "";
+                result = evaluateExpression(expression)
+                break;
+
+            case ">":
+                openRedirect = true;
                 break;
 
             case "|":
@@ -88,26 +86,22 @@ function evaluateExpression(expression, command) {
                 break;
 
             default:
-                if (openPipe) leftEvalString = character + leftEvalString;
+                if (openPipe || openRedirect) leftEvalString = character + leftEvalString;
                 else rightEvalString = character + rightEvalString;
                 break;
         }
     }
 
-    if (openPipe && rightEvalString && leftEvalString) {
-        var leftOutput = parseInput(leftEvalString).replaceAll(" ", ";");
-        result += parseInput(rightEvalString + " " + leftOutput);
-    } else if (!openPipe && rightEvalString) {
-        result += parseInput(rightEvalString);
-    } else {
-        result += "Incorrect Expression" + "<br/>";
+    if (!openPipe && !openRedirect && !leftEvalString) {
+        result = parseInput(rightEvalString.trim());
     }
-    if (result) {
-        processedOutputString += result;
-        document.getElementById("terminal").innerHTML += processedOutputString;
-    } else {
-        document.getElementById("terminal").innerHTML += "<br/>";
+    if (openPipe && !openRedirect) {
+        result = parseInput(rightEvalString.trim() + " " + evaluateExpression(expression));
     }
+    if (!openPipe && openRedirect) {
+        createFileAndWriteContents(evaluateExpression(expression), rightEvalString.trim());
+    }
+    return result;
 }
 
 function parseInput(stdin) {
@@ -118,17 +112,17 @@ function parseInput(stdin) {
             break;
 
         case "basher":
-            processedOutputString += "<br/>";
+            processedOutputString;
             processBasherTools(input);
             break;
 
         case "cat":
-            processedOutputString += cat(input) + "<br/>";
+            processedOutputString += cat(input);
             break;
 
         case "cd":
             cd(input);
-            processedOutputString += "<br/>";
+            processedOutputString;
             break;
 
         case "clear":
@@ -136,47 +130,47 @@ function parseInput(stdin) {
             break;
 
         case "date":
-            processedOutputString += date(input) + "<br/>";
+            processedOutputString += date(input);
             break;
 
         case "echo":
-            processedOutputString += echo(input) + "<br/>";
+            processedOutputString += echo(input);
             break;
 
         case "grep":
-            processedOutputString += grep(input) + "<br/>";
+            processedOutputString += grep(input);
             break;
 
         case "help":
-            processedOutputString += help() + "<br/>";
+            processedOutputString += help();
             break;
 
         case "ls":
-            processedOutputString += ls(input) + "<br/>";
+            processedOutputString += ls(input);
             break;
 
         case "mkdir":
             mkdir(input);
-            processedOutputString += "<br/>";
+            processedOutputString;
             break;
 
         case "pwd":
-            processedOutputString += pwd(input) + "<br/>";
+            processedOutputString += pwd(input);
             break;
 
         case "rmdir":
             rmdir(input);
-            processedOutputString += "<br/>";
+            processedOutputString;
             break;
 
         case "touch":
-            touch(input);
-            processedOutputString += "<br/>";
+            touch(input[1]);
+            processedOutputString;
             break;
 
         case "vi":
             startVim(input);
-            processedOutputString += "<br/>";
+            processedOutputString;
             break;
 
         default:
@@ -222,21 +216,18 @@ function date(input) {
 }
 
 function help() {
-    var helpString =
-        "Basher is still very new and i am working on supporting more linux commands <br/>";
-    helpString +=
-        "Here is a list of commands currently supported by basher <br/>";
+    var helpString = "Basher is still very new and i am working on supporting more linux commands <br/>";
+    helpString += "Here is a list of commands currently supported by basher <br/>";
     for (let i = 0; i < supportedCommands.length; i++) {
         helpString += " " + (i + 1) + ". " + supportedCommands[i] + " <br/>";
     }
-    helpString +=
-        "<br/> Thanks for coming by and be sure to give your feedback over at the github repo <br/>";
+    helpString += "<br/> Thanks for coming by and be sure to give your feedback over at the github repo <br/>";
     return helpString;
 }
 
 function grep(input) {
     var searchString = input[1].trim();
-    var lines = input[2].replaceAll(";", " ").split("<br/>");
+    var lines = input.slice(2).join(" ").split("<br/>");
     var outString = "";
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes(searchString)) {
@@ -251,11 +242,7 @@ function ls(input) {
     var folderContents = [];
     if (files) folderContents = JSON.parse(files);
     var longListFlag = false;
-    if (
-        input.length > 1 &&
-        input[1].startsWith("-") &&
-        input[1].includes("l")
-    ) {
+    if (input.length > 1 && input[1].startsWith("-") && input[1].includes("l")) {
         longListFlag = true;
     }
     var filesString = "";
@@ -284,26 +271,12 @@ function mkdir(input) {
         var files = getItemFromLocalStorage(workingDirectory);
         var folderContents = [];
         if (files) folderContents = JSON.parse(files);
-        const d = new Date();
-        const time = d.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hour12: false,
-        });
-        var object = {
-            name: input[i],
-            modifiedAt:
-                d.getDate() +
-                " " +
-                months[d.getMonth()] +
-                " " +
-                d.getFullYear() +
-                " " +
-                time,
-            modifiedBy: "basher",
-            permissions: "",
-        };
+        var object = initFileObject(input[1]);
+        for (let j = 0; j < folderContents.length; j++) {
+            if (folderContents[j].name == object.name) {
+                return;
+            }
+        }
         if (input[i].includes(".")) {
             object.permissions = "-rw-rw-r--";
             folderContents.push(object);
@@ -311,6 +284,7 @@ function mkdir(input) {
             object.permissions = "drwxr-xr-x";
             folderContents.push(object);
         }
+
         setItemInLocalStorage(workingDirectory, JSON.stringify(folderContents));
     }
 
@@ -318,20 +292,13 @@ function mkdir(input) {
 }
 
 function echo(input) {
-    var outputString = "";
-    for (let i = 1; i < input.length; i++) {
-        outputString += input[i] + " ";
-    }
-    outputString = outputString.replaceAll('"', "");
+    var outputString = input.slice(1).join(" ").replaceAll('"', "");
     return outputString;
 }
 
 function cd(input) {
     if (input[1] == "..") {
-        workingDirectory = workingDirectory.substring(
-            0,
-            workingDirectory.lastIndexOf("/")
-        );
+        workingDirectory = workingDirectory.substring(0, workingDirectory.lastIndexOf("/"));
     } else if (input[1].startsWith("/")) {
         workingDirectory = input[1];
     } else if (input[1] != ".") {
@@ -364,10 +331,7 @@ function rmdir(input) {
                             updatedFolderContents.push(folderContents[i]);
                         }
                     }
-                    setItemInLocalStorage(
-                        workingDirectory,
-                        JSON.stringify(updatedFolderContents)
-                    );
+                    setItemInLocalStorage(workingDirectory, JSON.stringify(updatedFolderContents));
                 }
             }
         }
@@ -378,66 +342,36 @@ function pwd(input) {
     return workingDirectory;
 }
 
-function touch(input) {
-    if (input[1].startsWith("/")) {
-        var files = getItemFromLocalStorage(
-            input[1].substring(0, input[1].lastIndexOf("/"))
-        );
+function touch(filePath) {
+    if (filePath.startsWith("/")) {
+        let fileName = filePath.substring(0, filePath.lastIndexOf("/"));
+        var files = getItemFromLocalStorage(fileName);
         var folderContents = [];
         if (files) folderContents = JSON.parse(files);
-        const d = new Date();
-        const time = d.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hour12: false,
-        });
-        var object = {
-            name: input[1],
-            modifiedAt:
-                d.getDate() +
-                " " +
-                months[d.getMonth()] +
-                " " +
-                d.getFullYear() +
-                " " +
-                time,
-            modifiedBy: "basher",
-            permissions: "-rwxr-xr--",
-        };
+        var object = initFileObject(fileName);
+        object.permissions = "-rw-rw-r--";
+        for (let j = 0; j < folderContents.length; j++) {
+            if (folderContents[j].name == object.name) {
+                return;
+            }
+        }
         folderContents.push(object);
-        setItemInLocalStorage(
-            input[1].substring(0, input[1].lastIndexOf("/")),
-            JSON.stringify(folderContents)
-        );
-        setItemInLocalStorage(input[1], "");
+        setItemInLocalStorage(fileName, JSON.stringify(folderContents));
+        setItemInLocalStorage(filePath, "");
     } else {
         var files = getItemFromLocalStorage(workingDirectory);
         var folderContents = [];
         if (files) folderContents = JSON.parse(files);
-        const d = new Date();
-        const time = d.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hour12: false,
-        });
-        var object = {
-            name: input[1],
-            modifiedAt:
-                d.getDate() +
-                " " +
-                months[d.getMonth()] +
-                " " +
-                d.getFullYear() +
-                " " +
-                time,
-            modifiedBy: "basher",
-            permissions: "-rwxr-xr--",
-        };
+        var object = initFileObject(filePath);
+        object.permissions = "-rw-rw-r--";
+        for (let j = 0; j < folderContents.length; j++) {
+            if (folderContents[j].name == object.name) {
+                return;
+            }
+        }
         folderContents.push(object);
         setItemInLocalStorage(workingDirectory, JSON.stringify(folderContents));
-        setItemInLocalStorage(workingDirectory + "/" + input[1], "");
+        setItemInLocalStorage(workingDirectory + "/" + filePath, "");
     }
 }
 
@@ -452,7 +386,7 @@ function startVim(input) {
     vimFileName = input[1].includes(".") ? input[1] : input[1] + ".txt";
 
     var data = getItemFromLocalStorage(workingDirectory + "/" + vimFileName);
-    if (data) viminput.innerHTML = data;
+    if (data) viminput.value = data;
 }
 
 function handleVimKeyDown(event) {
@@ -476,15 +410,11 @@ function handleVimInput(event) {
         case 8:
             if (isInsertMode) {
                 var text = document.getElementById("viminput").innerHTML;
-                document.getElementById("viminput").innerHTML = text.substring(
-                    0,
-                    text.length - 1
-                );
+                document.getElementById("viminput").innerHTML = text.substring(0, text.length - 1);
             }
         case 73:
             if (isInsertMode && !checkSpecial(which)) {
-                document.getElementById("viminput").innerHTML +=
-                    String.fromCharCode(event.key);
+                document.getElementById("viminput").innerHTML += String.fromCharCode(event.key);
             } else {
                 document.getElementById("viminput").disabled = false;
                 vimStatus = "--INSERT--";
@@ -514,10 +444,7 @@ function disableInsertMode() {
 }
 
 function closeVim() {
-    if (
-        vimStatus.startsWith(":") &&
-        (vimStatus.includes("wq") || vimStatus.includes("q"))
-    ) {
+    if (vimStatus.startsWith(":") && (vimStatus.includes("wq") || vimStatus.includes("q"))) {
         var root = document.getElementById("root");
         var vim = document.getElementById("vim");
         var viminput = document.getElementById("viminput");
@@ -526,30 +453,17 @@ function closeVim() {
         root.style.display = "flex";
         vim.style.display = "none";
         var data = viminput.value.replaceAll("\n", "<br/>");
-        console.log(data);
+
         var files = getItemFromLocalStorage(workingDirectory);
         var folderContents = [];
         if (files) folderContents = JSON.parse(files);
-        const d = new Date();
-        const time = d.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hour12: false,
-        });
-        var object = {
-            name: vimFileName,
-            modifiedAt:
-                d.getDate() +
-                " " +
-                months[d.getMonth()] +
-                " " +
-                d.getFullYear() +
-                " " +
-                time,
-            modifiedBy: "basher",
-            permissions: "-rw-rw-r--",
-        };
+        var object = initFileObject(vimFileName);
+        for (let j = 0; j < folderContents.length; j++) {
+            if (folderContents[j].name == object.name) {
+                return;
+            }
+        }
+        object.permissions = "-rw-rw-r--";
         folderContents.push(object);
         setItemInLocalStorage(workingDirectory, JSON.stringify(folderContents));
         setItemInLocalStorage(workingDirectory + "/" + vimFileName, data);
@@ -557,6 +471,7 @@ function closeVim() {
         viminput.value = "";
         vimstatus.innerHTML = "";
         vimStatus = "";
+        vimFileName = "";
     }
 }
 
@@ -578,4 +493,30 @@ function getItemFromLocalStorage(key) {
 
 function setItemInLocalStorage(key, value) {
     return window.localStorage.setItem(key, value);
+}
+
+function initFileObject(name) {
+    const d = new Date();
+    const time = d.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+        hour12: false,
+    });
+    var object = {
+        name: name,
+        modifiedAt: d.getDate() + " " + months[d.getMonth()] + " " + d.getFullYear() + " " + time,
+        modifiedBy: "basher",
+        permissions: "",
+    };
+    return object;
+}
+
+function createFileAndWriteContents(result, filePath) {
+    touch(filePath);
+    if (filePath.startsWith("/")) {
+        setItemInLocalStorage(filePath, result);
+    } else {
+        setItemInLocalStorage(workingDirectory + "/" + filePath, result);
+    }
 }
