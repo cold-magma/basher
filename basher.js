@@ -74,8 +74,7 @@ function evaluateExpression(expression) {
         var character = expression.pop();
         switch (character) {
             case ";":
-                result += parseInput(leftEvalString);
-                leftEvalString = "";
+                result = evaluateExpression(expression)
                 break;
 
             case ">":
