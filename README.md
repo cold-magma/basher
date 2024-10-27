@@ -16,4 +16,3 @@ Need help? Just ask basher for ```help```
 
 ### Other features coming soon...
 - variable support
-
