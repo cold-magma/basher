@@ -1,3 +1,4 @@
+var workingDirectory = "/home/basher";
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const months = [
     "January",
@@ -32,8 +33,35 @@ const supportedCommands = [
     "touch",
     "vi",
 ];
+const defaultEnvVars = {
+    SHELL: "/bin/basher",
+    USER: "basher",
+    PWD: workingDirectory,
+    HOME: "/home/basher",
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    LANG: "en_US.UTF-8",
+    HOSTNAME: "basher@hello_world",
+    MAIL: "amalrocks29@gmail.com",
+    EDITOR: "vi",
+    TEMP: "/tmp",
+};
+let envVars = {
+    SHELL: "/bin/basher",
+    USER: "basher",
+    PWD: workingDirectory,
+    HOME: "/home/basher",
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    LANG: "en_US.UTF-8",
+    HOSTNAME: "basher@hello_world",
+    MAIL: "amalrocks29@gmail.com",
+    EDITOR: "vi",
+    TEMP: "/tmp",
+};
 
-var workingDirectory = "/home/basher";
+window.addEventListener("load", (event) => {
+    console.log("page is fully loaded");
+});
+
 //vim props
 var isInsertMode = false;
 var vimFileName = "";
@@ -55,11 +83,11 @@ function parseExpression(stdin) {
         document.getElementById("terminal").innerHTML += processedOutputString;
         return;
     }
-    console.log(stdin)
+    console.log(stdin);
     processedOutputString += evaluateExpression(expression, stdin);
     if (!(stdin == "clear")) {
         document.getElementById("terminal").innerHTML += processedOutputString + "<br/>";
-    } 
+    }
 }
 
 function evaluateExpression(expression) {
@@ -74,7 +102,7 @@ function evaluateExpression(expression) {
         var character = expression.pop();
         switch (character) {
             case ";":
-                result = evaluateExpression(expression)
+                result = evaluateExpression(expression);
                 break;
 
             case ">":
@@ -137,6 +165,14 @@ function parseInput(stdin) {
             processedOutputString += echo(input);
             break;
 
+        case "env":
+            processedOutputString += env(input);
+            break;
+
+        case "export":
+            processedOutputString += exportEnvVars(input);
+            break;
+
         case "grep":
             processedOutputString += grep(input);
             break;
@@ -180,7 +216,10 @@ function parseInput(stdin) {
 }
 
 function processBasherTools(input) {
-    if (input[1] == "reset") window.localStorage.clear();
+    if (input[1] == "reset") {
+        envVars = defaultEnvVars;
+        window.localStorage.clear();
+    }
 }
 
 function clear() {
@@ -294,6 +333,38 @@ function mkdir(input) {
 function echo(input) {
     var outputString = input.slice(1).join(" ").replaceAll('"', "");
     return outputString;
+}
+
+function env(input) {
+    console.log(JSON.parse(getItemFromLocalStorage("env")));
+    var value = JSON.parse(getItemFromLocalStorage("env"));
+    if (value) {
+        let definedEnvVars = "";
+        for (let key in value) {
+            definedEnvVars += key + "=" + envVars[key] + "<br/>";
+        }
+        return definedEnvVars;
+    } else {
+        let definedEnvVars = "";
+        for (let key in envVars) {
+            definedEnvVars += key + "=" + envVars[key] + "<br/>";
+        }
+        setItemInLocalStorage("env", JSON.stringify(envVars));
+        return definedEnvVars;
+    }
+}
+
+function exportEnvVars(input) {
+    if (input[1].includes("=") && input[1].includes("$")) {
+        var exportedVar = input[1];
+        var key = exportedVar.split("=")[0].toUpperCase().replaceAll("$", "");
+        var value = exportedVar.split("=")[1];
+        envVars[key] = value;
+        setItemInLocalStorage("env", JSON.stringify(envVars));
+        return "";
+    } else {
+        return "Incorrect expression";
+    }
 }
 
 function cd(input) {
