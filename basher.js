@@ -113,6 +113,12 @@ function evaluateExpression(expression) {
                 openPipe = true;
                 break;
 
+            case "$":
+                var vairableString = "$" + rightEvalString.split(" ")[0];
+                rightEvalString = character + rightEvalString;
+                rightEvalString = rightEvalString.replaceAll(vairableString, getVariableValue(vairableString));
+                break;
+
             default:
                 if (openPipe || openRedirect) leftEvalString = character + leftEvalString;
                 else rightEvalString = character + rightEvalString;
@@ -274,6 +280,12 @@ function grep(input) {
         }
     }
     return outString;
+}
+
+function getVariableValue(vairableString) {
+    var outputString = ""
+    outputString = envVars[vairableString.replaceAll("$","")]
+    return outputString
 }
 
 function ls(input) {
