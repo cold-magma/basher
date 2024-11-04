@@ -57,7 +57,6 @@ let envVars = {
     EDITOR: "vi",
     TEMP: "/tmp",
 };
-
 window.addEventListener("load", (event) => {
     console.log("page is fully loaded");
 });
@@ -155,8 +154,7 @@ function parseInput(stdin) {
             break;
 
         case "cd":
-            cd(input);
-            processedOutputString;
+            processedOutputString += cd(input);
             break;
 
         case "clear":
@@ -383,10 +381,19 @@ function cd(input) {
     if (input[1] == "..") {
         workingDirectory = workingDirectory.substring(0, workingDirectory.lastIndexOf("/"));
     } else if (input[1].startsWith("/")) {
-        workingDirectory = input[1];
+        if(getItemFromLocalStorage(input[1])) {
+            workingDirectory = input[1];
+        } else {
+            return "cd: " + input[1] + ": No such file or directory"
+        }
     } else if (input[1] != ".") {
-        workingDirectory += "/" + input[1];
+        if(getItemFromLocalStorage(workingDirectory)) {
+            workingDirectory += "/" + input[1];
+        } else {
+            return "cd: " + input[1] + ": No such file or directory"
+        }
     }
+    return ""
 }
 
 function rmdir(input) {
