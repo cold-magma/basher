@@ -25,6 +25,8 @@ const supportedCommands = [
     "cd",
     "date",
     "echo",
+    "env",
+    "export",
     "grep",
     "ls",
     "mkdir",
