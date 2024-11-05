@@ -1,13 +1,13 @@
 body {
     background-color: black;
-    color: green;
+    color: #00ff33;
     font-family: "Source Code Pro", monospace;
     font-size: medium;
 }
 
 input {
     background-color: black;
-    color: green;
+    color: #00ff33;
     border: none;
     outline: none;
     cursor: text;
@@ -18,7 +18,7 @@ input {
 
 textarea {
     background-color: black;
-    color: green;
+    color: #00ff33;
     border: none;
     outline: none;
     cursor: text;
