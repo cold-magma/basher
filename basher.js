@@ -60,7 +60,9 @@ let envVars = {
     TEMP: "/tmp",
 };
 window.addEventListener("load", (event) => {
-    console.log("page is fully loaded");
+    var env = getItemFromLocalStorage(env);
+    if (env) envVars = JSON.parse(env);
+    else envVars = defaultEnvVars;
 });
 
 //vim props
@@ -201,8 +203,7 @@ function parseInput(stdin) {
             break;
 
         case "rmdir":
-            rmdir(input);
-            processedOutputString;
+            processedOutputString += rmdir(input);
             break;
 
         case "touch":
@@ -283,9 +284,9 @@ function grep(input) {
 }
 
 function getVariableValue(vairableString) {
-    var outputString = ""
-    outputString = envVars[vairableString.replaceAll("$","")]
-    return outputString
+    var outputString = "";
+    outputString = envVars[vairableString.replaceAll("$", "")];
+    return outputString;
 }
 
 function ls(input) {
@@ -367,9 +368,10 @@ function env(input) {
 }
 
 function exportEnvVars(input) {
-    if (input[1].includes("=") && input[1].includes("$")) {
-        var exportedVar = input[1];
-        var key = exportedVar.split("=")[0].toUpperCase().replaceAll("$", "");
+    var exportedVar = input.slice(1).join("");
+    exportedVar = exportedVar.replaceAll(" ", "");
+    if (exportedVar.includes("=")) {
+        var key = exportedVar.split("=")[0].toUpperCase();
         var value = exportedVar.split("=")[1];
         envVars[key] = value;
         setItemInLocalStorage("env", JSON.stringify(envVars));
@@ -383,19 +385,19 @@ function cd(input) {
     if (input[1] == "..") {
         workingDirectory = workingDirectory.substring(0, workingDirectory.lastIndexOf("/"));
     } else if (input[1].startsWith("/")) {
-        if(getItemFromLocalStorage(input[1])) {
+        if (getItemFromLocalStorage(input[1])) {
             workingDirectory = input[1];
         } else {
-            return "cd: " + input[1] + ": No such file or directory"
+            return "cd: " + input[1] + ": No such file or directory";
         }
     } else if (input[1] != ".") {
-        if(getItemFromLocalStorage(workingDirectory)) {
+        if (getItemFromLocalStorage(workingDirectory)) {
             workingDirectory += "/" + input[1];
         } else {
-            return "cd: " + input[1] + ": No such file or directory"
+            return "cd: " + input[1] + ": No such file or directory";
         }
     }
-    return ""
+    return "";
 }
 
 function rmdir(input) {
@@ -408,22 +410,34 @@ function rmdir(input) {
                     if (files) folderContents = JSON.parse(files);
                     var updatedFolderContents = [];
                     for (let i = 0; i < folderContents.length; i++) {
-                        if (input[j] != folderContents[i].name) {
+                        if (input[j] == folderContents[i].name && folderContents[i].permissions.startsWith("-r")) {
+                            return "rmdir: " + input[j] + ": Is not a directory";
+                        } else if (input[j] != folderContents[i].name) {
                             updatedFolderContents.push(folderContents[i]);
                         }
                     }
+                    if (updatedFolderContents.length == folderContents.length) {
+                        return "rmdir: " + input[j] + ": No such directory";
+                    }
                     setItemInLocalStorage(input[j], updatedFolderContents);
+                    return "";
                 } else {
                     var files = getItemFromLocalStorage(workingDirectory);
                     var folderContents = [];
                     if (files) folderContents = JSON.parse(files);
                     var updatedFolderContents = [];
                     for (let i = 0; i < folderContents.length; i++) {
-                        if (input[j] != folderContents[i].name) {
+                        if (input[j] == folderContents[i].name && folderContents[i].permissions.startsWith("-r")) {
+                            return "rmdir: " + input[j] + ": Is not a directory";
+                        } else if (input[j] != folderContents[i].name) {
                             updatedFolderContents.push(folderContents[i]);
                         }
                     }
+                    if (updatedFolderContents.length == folderContents.length) {
+                        return "rmdir: " + input[j] + ": No such directory";
+                    }
                     setItemInLocalStorage(workingDirectory, JSON.stringify(updatedFolderContents));
+                    return "";
                 }
             }
         }
