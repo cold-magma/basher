@@ -1,7 +1,7 @@
 # Basher
 A fun terminal emulator web app....written completely in JavaScript, running completely local on your device.
 
-Need help? Just ask basher for ```help```
+Need help? Just ask ```basher help```
 
 ### Commands coming up ahead in the pipeline
 1. ps
