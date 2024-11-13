@@ -194,8 +194,7 @@ function parseInput(stdin) {
             break;
 
         case "mkdir":
-            mkdir(input);
-            processedOutputString;
+            processedOutputString += mkdir(input);
             break;
 
         case "pwd":
@@ -207,8 +206,7 @@ function parseInput(stdin) {
             break;
 
         case "touch":
-            touch(input[1]);
-            processedOutputString;
+            processedOutputString += touch(input[1]);
             break;
 
         case "vi":
@@ -234,8 +232,13 @@ function clear() {
 }
 
 function cat(input) {
-    var output = getItemFromLocalStorage(workingDirectory + "/" + input[1]);
-    return output ? output : "";
+    if (input[1].startsWith("/")) {
+        var output = getItemFromLocalStorage(input[1]);
+        return output ? output : "cat: " + input[1] + " No such file";
+    } else {
+        var output = getItemFromLocalStorage(workingDirectory + "/" + input[1]);
+        return output ? output : "cat: " + input[1] + " : No such file";
+    }
 }
 
 function date(input) {
@@ -326,7 +329,7 @@ function mkdir(input) {
         var object = initFileObject(input[1]);
         for (let j = 0; j < folderContents.length; j++) {
             if (folderContents[j].name == object.name) {
-                return;
+                return "mkdir: " + object.name + " : File or Folder already exists";
             }
         }
         if (input[i].includes(".")) {
@@ -383,7 +386,8 @@ function exportEnvVars(input) {
 
 function cd(input) {
     if (input[1] == "..") {
-        workingDirectory = workingDirectory.substring(0, workingDirectory.lastIndexOf("/"));
+        if (workingDirectory != "/")
+            workingDirectory = workingDirectory.substring(0, workingDirectory.lastIndexOf("/"));
     } else if (input[1].startsWith("/")) {
         if (getItemFromLocalStorage(input[1])) {
             workingDirectory = input[1];
@@ -458,7 +462,7 @@ function touch(filePath) {
         object.permissions = "-rw-rw-r--";
         for (let j = 0; j < folderContents.length; j++) {
             if (folderContents[j].name == object.name) {
-                return;
+                return "touch: " + object.name + " : File already exists";
             }
         }
         folderContents.push(object);
@@ -472,13 +476,14 @@ function touch(filePath) {
         object.permissions = "-rw-rw-r--";
         for (let j = 0; j < folderContents.length; j++) {
             if (folderContents[j].name == object.name) {
-                return;
+                return "touch: " + object.name + " : File already exists";
             }
         }
         folderContents.push(object);
         setItemInLocalStorage(workingDirectory, JSON.stringify(folderContents));
         setItemInLocalStorage(workingDirectory + "/" + filePath, "");
     }
+    return "";
 }
 
 function startVim(input) {
@@ -489,7 +494,7 @@ function startVim(input) {
     root.style.display = "none";
     vim.style.display = "flex";
     viminput.disabled = true;
-    vimFileName = input[1].includes(".") ? input[1] : input[1] + ".txt";
+    vimFileName = input[1];
 
     var data = getItemFromLocalStorage(workingDirectory + "/" + vimFileName);
     if (data) viminput.value = data;
